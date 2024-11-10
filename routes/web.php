@@ -5,8 +5,6 @@ use App\Http\Controllers\WebAuthController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserController;
 
-
-Route::get('/', [WebAuthController::class, 'showLogin'])->name('login');
 Route::get('/login', [WebAuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [WebAuthController::class, 'login']);
 Route::get('/register', [WebAuthController::class, 'showRegister'])->name('register');
