@@ -2,7 +2,6 @@
 @section('content')
 
     <div class="container mt-5">
-
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div class="d-flex align-items-center">
                 <a href="{{ route('admin.users.index') }}" class="btn btn-secondary me-3"><i class="fas fa-arrow-left"></i></a>
@@ -32,7 +31,7 @@
                             <th>Date Ordered</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="orders-tbody">
                         @foreach ($orders as $order)
                         <tr>
                             <td>{{ ($orders->currentPage() - 1) * $orders->perPage() + $loop->iteration }}</td>
@@ -51,10 +50,17 @@
                 </table>
             </div>
 
-            <div class="d-flex justify-content-center mt-3">
+            <div id="pagination-container" class="d-flex justify-content-center mt-3">
                 {{ $orders->links('vendor.pagination.bootstrap-4') }}
             </div>
         @endif
+
+        <!-- Loading spinner -->
+        <div id="loading-spinner" style="display: none; text-align: center; margin-top: 20px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
     </div>
 
     <div class="modal fade" id="addOrderModal" tabindex="-1" aria-labelledby="addOrderModalLabel" aria-hidden="true">
@@ -139,6 +145,66 @@
                 });
             });
         });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById('pagination-container').addEventListener('click', function(event) {
+                event.preventDefault();
+                if (event.target.tagName === 'A') {
+                    const url = event.target.href;
+                    fetchOrders(url);
+                }
+            });
+        });
+
+        function fetchOrders(url) {
+            const spinner = document.getElementById('loading-spinner');
+            const ordersTbody = document.getElementById('orders-tbody');
+            const paginationContainer = document.getElementById('pagination-container');
+
+            // Show spinner and clear table temporarily
+            spinner.style.display = 'block';
+            ordersTbody.innerHTML = '';
+            paginationContainer.innerHTML = '';
+
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Calculate the starting serial number based on the page
+                const currentPage = new URL(url).searchParams.get('page') || 1;
+                const startSerial = (currentPage - 1) * 5; // Adjust for items per page
+
+                let ordersHtml = '';
+                data.orders.forEach((order, index) => {
+                    ordersHtml += `
+                        <tr>
+                            <td>${startSerial + index + 1}</td>
+                            <td>${order.order_id}</td>
+                            <td class="d-flex align-items-center">
+                                <img src="${order.product_image}" alt="${order.product_name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 10px;">
+                                <span>${order.product_name}</span>
+                            </td>
+                            <td>${order.quantity}</td>
+                            <td>$${parseFloat(order.total_price).toFixed(2)}</td>
+                            <td>${order.status}</td>
+                            <td>${order.created_at}</td>
+                        </tr>
+                    `;
+                });
+                ordersTbody.innerHTML = ordersHtml;
+
+                // Update pagination links and hide spinner
+                paginationContainer.innerHTML = data.pagination;
+                spinner.style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error fetching orders:', error);
+                spinner.style.display = 'none';
+            });
+        }
     </script>
 
 @endsection

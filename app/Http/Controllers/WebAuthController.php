@@ -20,19 +20,16 @@ class WebAuthController extends Controller
     {
         return view('auth.register');
     }
-
+ 
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'firstname' => 'required|string|max:255',
             'lastname' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:8|regex:/\d/', 
+            'password_confirmation' => 'required|same:password',
         ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
-        }
 
         $user = User::create([
             'firstname' => $request->firstname,
@@ -43,7 +40,7 @@ class WebAuthController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('orders');
+        return redirect()->route('orders')->with('success', 'Registered successfully!');
     }
 
     public function login(Request $request)
@@ -53,24 +50,20 @@ class WebAuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            if (Auth::user()->role === 'admin') {
-                return redirect()->route('admin.users.index'); 
-            }
-
-            return redirect()->route('orders');
+            return redirect()->route('orders')->with('success', 'Logged in successfully!');
         }
 
         return redirect()->back()->with('error', 'The provided credentials do not match our records.');
     }
 
-
     public function logout(Request $request)
     {
-        Auth::logout();
+         Auth::guard('web')->logout();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return redirect('/');
+         $request->session()->invalidate();
+ 
+         $request->session()->regenerateToken();
+ 
+         return redirect('/')->with('success', 'Logged out successfully!');
     }
 }

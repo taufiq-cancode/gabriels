@@ -15,6 +15,16 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        User::create([
+            'firstname' => 'Admin',
+            'lastname' => 'Example',
+            'email' => 'admin@test.com',
+            'password' => bcrypt('1q2w3e4r'), 
+            'role' => 'admin',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         $faker = Faker::create();
 
         foreach (range(1, 20) as $index) {

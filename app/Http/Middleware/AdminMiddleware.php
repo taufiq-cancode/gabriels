@@ -11,10 +11,11 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && Auth::user()->role === 'admin') {
-            return $next($request);
+        if (Auth::user()->role !== 'admin') {
+            return redirect()->back()->with('error', 'Unauthorized access.');
         }
 
-        return redirect()->route('orders')->with('error', 'Unauthorized access.');
+        return $next($request);
     }
+
 }

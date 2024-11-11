@@ -7,10 +7,10 @@ use App\Http\Controllers\ApiOrderController;
 use App\Http\Controllers\ApiUserController;
 
 
-Route::post('/register', [ApiAuthController::class, 'register']);
-Route::post('/login', [ApiAuthController::class, 'login']);
+Route::post('/register', [ApiAuthController::class, 'register'])->name('api.register');
+Route::post('/login', [ApiAuthController::class, 'login'])->name('api.login');
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum', 'track.api.requests')->group(function () {
     Route::get('/orders', [ApiOrderController::class, 'showOrders']);
 });
 

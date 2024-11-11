@@ -12,18 +12,28 @@ use App\Models\Product;
 
 class OrderController extends Controller
 {
-    public function showOrders()
+    public function showOrders(Request $request)
     {
         $user = auth()->user();
         
         $orders = Order::where('user_id', $user->id)
                         ->with('user', 'product')
-                        ->orderby('created_at', 'desc')
-                        ->paginate(5);;
+                        ->orderBy('created_at', 'desc')
+                        ->paginate(5);
 
-        return view('orders.index', compact('orders'));
+        $products = Product::all();
+        $users = User::all();
+    
+        if ($request->ajax()) {
+            return response()->json([
+                'orders' => $orders->items(),
+                'pagination' => (string) $orders->links('vendor.pagination.bootstrap-4')
+            ]);
+        }
+    
+        return view('orders.index', compact('orders', 'products', 'users'));
     }
-
+    
     public function store(Request $request)
     {
         $validated = $request->validate([
