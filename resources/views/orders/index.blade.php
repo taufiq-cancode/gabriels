@@ -43,7 +43,9 @@
                         <td>{{ ($orders->currentPage() - 1) * $orders->perPage() + $loop->iteration }}</td>
                         <td>{{ $order->order_id }}</td>
                         <td class="d-flex align-items-center">
-                            <img src="{{ asset('storage/' . $order->product->image) }}" alt="{{ $order->product->name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 10px;">
+                            @if(Storage::disk('public')->exists($order->product->image))
+                                <img src="{{ asset('storage/' . $order->product->image) }}" alt="{{ $order->product->name }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px; margin-right: 10px;">
+                            @endif
                             <span>{{ $order->product->name }}</span>
                         </td>
                         <td>{{ $order->quantity }}</td>
